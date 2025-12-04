@@ -209,10 +209,21 @@ export const CharacterController = ({
     };
 
     // Touch controls for mobile camera
+    const isInButtonArea = (x, y) => {
+      // Exclude bottom-right corner where fire button is (roughly 150x150px area)
+      const isBottomRight = x > window.innerWidth - 150 && y > window.innerHeight - 150;
+      // Exclude bottom-left corner where joystick is
+      const isBottomLeft = x < 200 && y > window.innerHeight - 200;
+      return isBottomRight || isBottomLeft;
+    };
+
     const handleTouchStart = (e) => {
-      // Only use touches on the right side of the screen for camera (left side is joystick)
       const touch = e.touches[e.touches.length - 1]; // Use the latest touch
-      if (touch.clientX > window.innerWidth * 0.3) { // Right 70% of screen for camera
+      // Skip if touch is on UI buttons (joystick or fire button areas)
+      if (isInButtonArea(touch.clientX, touch.clientY)) return;
+      
+      // Use touches on the right 70% of screen for camera (left side is joystick)
+      if (touch.clientX > window.innerWidth * 0.3) {
         lastTouchPosition.current = { x: touch.clientX, y: touch.clientY };
         isTouchingCamera.current = true;
       }
@@ -221,11 +232,12 @@ export const CharacterController = ({
     const handleTouchMove = (e) => {
       if (!isTouchingCamera.current) return;
       
-      // Find the touch that's on the right side (camera control)
+      // Find a valid camera touch (not on button areas)
       let cameraTouch = null;
       for (let i = 0; i < e.touches.length; i++) {
-        if (e.touches[i].clientX > window.innerWidth * 0.3) {
-          cameraTouch = e.touches[i];
+        const t = e.touches[i];
+        if (t.clientX > window.innerWidth * 0.3 && !isInButtonArea(t.clientX, t.clientY)) {
+          cameraTouch = t;
           break;
         }
       }
@@ -248,7 +260,8 @@ export const CharacterController = ({
       // Check if any remaining touches are for camera
       let hasCameraTouch = false;
       for (let i = 0; i < e.touches.length; i++) {
-        if (e.touches[i].clientX > window.innerWidth * 0.3) {
+        const t = e.touches[i];
+        if (t.clientX > window.innerWidth * 0.3 && !isInButtonArea(t.clientX, t.clientY)) {
           hasCameraTouch = true;
           break;
         }
