@@ -32,13 +32,14 @@ export const WeaponSelector = ({ onWeaponChange }) => {
             right: "15px",
             top: "10px",
             background: "rgba(30, 30, 30, 0.95)",
-            borderRadius: "20px",
-            padding: "20px",
+            borderRadius: "16px",
+            padding: "16px",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.7)",
             border: "2px solid rgba(102, 126, 234, 0.3)",
-            maxWidth: "260px",
+            width: "232px",
             maxHeight: "90vh",
             overflowY: "auto",
+            overflowX: "hidden",
             zIndex: 999999,
         }}>
             {/* Weapon Selection */}
@@ -54,10 +55,9 @@ export const WeaponSelector = ({ onWeaponChange }) => {
                 </h3>
                 <div style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gridTemplateColumns: "repeat(4, 44px)",
                     gap: "8px",
-                    maxHeight: "400px",
-                    overflowY: "auto",
+                    justifyContent: "center",
                 }}>
                     {weapons.map((weapon) => (
                         <button
@@ -65,18 +65,18 @@ export const WeaponSelector = ({ onWeaponChange }) => {
                             onClick={() => handleWeaponSelect(weapon.id)}
                             title={weapon.name}
                             style={{
-                                width: "55px",
-                                height: "55px",
+                                width: "44px",
+                                height: "44px",
                                 background: selectedWeapon === weapon.id
                                     ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                                     : "rgba(255, 255, 255, 0.1)",
                                 border: selectedWeapon === weapon.id
                                     ? "2px solid #667eea"
                                     : "1px solid rgba(255, 255, 255, 0.2)",
-                                borderRadius: "12px",
+                                borderRadius: "10px",
                                 cursor: "pointer",
                                 transition: "all 0.2s",
-                                fontSize: "28px",
+                                fontSize: "22px",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",

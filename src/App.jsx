@@ -28,23 +28,24 @@ function App() {
   // Initialize Playroom - this will show the lobby automatically
   const initPlayroom = async () => {
     try {
-      // insertCoin shows Playroom lobby with our custom skin colors
+      // insertCoin shows Playroom lobby with random GitHub avatars
+      const avatars = [
+        'https://i.ibb.co/q3Zd7Ynk/alon.jpg',
+        // 'https://avatars.githubusercontent.com/u/1?v=4',
+        // 'https://avatars.githubusercontent.com/u/2?v=4',
+        // 'https://avatars.githubusercontent.com/u/3?v=4',
+        // 'https://avatars.githubusercontent.com/u/4?v=4',
+        // 'https://avatars.githubusercontent.com/u/5?v=4',
+        // 'https://avatars.githubusercontent.com/u/6?v=4',
+        // 'https://avatars.githubusercontent.com/u/7?v=4',
+        // 'https://avatars.githubusercontent.com/u/8?v=4',
+        // 'https://avatars.githubusercontent.com/u/9?v=4',
+        // 'https://avatars.githubusercontent.com/u/10?v=4',
+      ];
+
       await insertCoin({
         skipLobby: false,
-        avatarColors: [
-          "#00b894", // Emerald (Green)
-          "#2d3436", // Shadow (Dark Gray)
-          "#dfe6e9", // Arctic (White)
-          "#00cec9", // Neon (Bright Cyan)
-          "#6c5ce7", // Plasma (Blue)
-          "#ff6b6b", // Crimson (Red)
-          "#4ecdc4", // Ocean (Cyan)
-          "#95e1d3", // Forest (Mint)
-          "#f9ca24", // Gold (Yellow)
-          "#a29bfe", // Violet (Purple)
-          "#fd79a8", // Rose (Pink)
-          "#fdcb6e", // Sunset (Orange)
-        ],
+        avatars,
       });
 
       // After Launch is clicked, start the game
