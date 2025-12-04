@@ -291,8 +291,8 @@ export const CharacterController = ({
       let moveZ = 0;
 
       // WASD keys - FIXED INVERSION
-      if (keys.w || keys.arrowup) moveZ -= 1;
-      if (keys.s || keys.arrowdown) moveZ += 1;
+      if (keys.w || keys.arrowup) moveZ += 1;
+      if (keys.s || keys.arrowdown) moveZ -= 1;
       if (keys.a || keys.arrowleft) moveX -= 1;
       if (keys.d || keys.arrowright) moveX += 1;
 
@@ -330,8 +330,7 @@ export const CharacterController = ({
       rigidbody.current.applyImpulse(impulse, true);
     } else {
       setAnimation("Idle");
-      // When idle, character faces camera direction
-      character.current.rotation.y = mouseRotation.current.x;
+      // Keep facing the last direction (don't snap back to camera)
     }
 
     // JUMP LOGIC
@@ -350,8 +349,8 @@ export const CharacterController = ({
     const isFiring = keysPressed.current.space || keysPressed.current.shoot || joystick.isPressed("fire");
 
     if (isFiring) {
-      // fire - always use lastAngle for shooting direction
-      const shootAngle = lastAngle.current;
+      // fire - use character's actual facing direction
+      const shootAngle = character.current.rotation.y;
       setAnimation(isMoving ? "Run_Shoot" : "Idle_Shoot");
       if (isHost()) {
         if (Date.now() - lastShoot.current > FIRE_RATE) {

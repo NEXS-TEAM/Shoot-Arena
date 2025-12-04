@@ -1,24 +1,25 @@
 import { useState } from "react";
+import gunImage from "../assets/gun.png";
 
 export const WeaponSelector = ({ onWeaponChange }) => {
     const [selectedWeapon, setSelectedWeapon] = useState("AK");
 
     // All 14 weapons with better gun icons/emojis
     const weapons = [
-        { id: "AK", emoji: "🔫", name: "AK-47" },
-        { id: "Shotgun", emoji: "🔫", name: "Shotgun" },
-        { id: "Sniper", emoji: "🎯", name: "Sniper" },
-        { id: "Sniper_2", emoji: "🔫", name: "Heavy Sniper" },
-        { id: "SMG", emoji: "🔫", name: "SMG" },
-        { id: "Pistol", emoji: "🔫", name: "Pistol" },
-        { id: "Revolver", emoji: "🔫", name: "Revolver" },
-        { id: "Revolver_Small", emoji: "🔫", name: "Compact" },
-        { id: "GrenadeLauncher", emoji: "💣", name: "Grenade" },
-        { id: "RocketLauncher", emoji: "🚀", name: "Rocket" },
-        { id: "ShortCannon", emoji: "💥", name: "Cannon" },
-        { id: "Knife_1", emoji: "🔪", name: "Knife" },
-        { id: "Knife_2", emoji: "🗡️", name: "Dagger" },
-        { id: "Shovel", emoji: "⚒️", name: "Shovel" },
+        { id: "AK", icon: "gun", name: "AK-47" },
+        { id: "Shotgun", icon: "gun", name: "Shotgun" },
+        { id: "Sniper", icon: "🎯", name: "Sniper" },
+        { id: "Sniper_2", icon: "gun", name: "Heavy Sniper" },
+        { id: "SMG", icon: "gun", name: "SMG" },
+        { id: "Pistol", icon: "gun", name: "Pistol" },
+        { id: "Revolver", icon: "gun", name: "Revolver" },
+        { id: "Revolver_Small", icon: "gun", name: "Compact" },
+        { id: "GrenadeLauncher", icon: "💣", name: "Grenade" },
+        { id: "RocketLauncher", icon: "🚀", name: "Rocket" },
+        { id: "ShortCannon", icon: "💥", name: "Cannon" },
+        { id: "Knife_1", icon: "🔪", name: "Knife" },
+        { id: "Knife_2", icon: "🗡️", name: "Dagger" },
+        { id: "Shovel", icon: "⚒️", name: "Shovel" },
     ];
 
     const handleWeaponSelect = (weaponId) => {
@@ -93,7 +94,19 @@ export const WeaponSelector = ({ onWeaponChange }) => {
                                 }
                             }}
                         >
-                            {weapon.emoji}
+                            {weapon.icon === "gun" ? (
+                                <img 
+                                    src={gunImage} 
+                                    alt={weapon.name}
+                                    style={{
+                                        width: "32px",
+                                        height: "32px",
+                                        objectFit: "contain",
+                                    }}
+                                />
+                            ) : (
+                                weapon.icon
+                            )}
                         </button>
                     ))}
                 </div>
