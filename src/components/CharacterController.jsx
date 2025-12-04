@@ -408,6 +408,9 @@ export const CharacterController = ({
       setAnimation("Idle");
     }
 
+    // Track if player is moving (for shooting animation)
+    const isMoving = isJoystickMoving || isKeyboardMoving;
+
     // JUMP LOGIC
     // Check if player is on ground (simple check using y-velocity)
     const velocity = rigidbody.current.linvel();
