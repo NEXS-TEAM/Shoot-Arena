@@ -1,60 +1,4 @@
-import { useState } from "react";
-
 export const WalletConnect = ({ onContinue }) => {
-    const [connecting, setConnecting] = useState(false);
-
-    const handleConnectWallet = async () => {
-        setConnecting(true);
-
-        try {
-            // Check for Phantom wallet (most popular Solana wallet)
-            if (window.solana && window.solana.isPhantom) {
-                const response = await window.solana.connect();
-                const publicKey = response.publicKey.toString();
-
-                onContinue({
-                    connected: true,
-                    address: publicKey,
-                    wallet: 'Phantom',
-                });
-            }
-            // Check for Solflare
-            else if (window.solflare && window.solflare.isSolflare) {
-                await window.solflare.connect();
-                const publicKey = window.solflare.publicKey.toString();
-
-                onContinue({
-                    connected: true,
-                    address: publicKey,
-                    wallet: 'Solflare',
-                });
-            }
-            // Check for any Solana wallet
-            else if (window.solana) {
-                const response = await window.solana.connect();
-                const publicKey = response.publicKey.toString();
-
-                onContinue({
-                    connected: true,
-                    address: publicKey,
-                    wallet: 'Solana',
-                });
-            }
-            else {
-                alert("No Solana wallet detected! Please install Phantom wallet from phantom.app");
-                setConnecting(false);
-            }
-        } catch (error) {
-            console.error("Wallet connection error:", error);
-            if (error.code === 4001) {
-                alert("Wallet connection rejected. Please try again.");
-            } else {
-                alert("Failed to connect wallet. Please try again.");
-            }
-            setConnecting(false);
-        }
-    };
-
     const handleContinueWithout = () => {
         onContinue({
             connected: false,
@@ -70,7 +14,7 @@ export const WalletConnect = ({ onContinue }) => {
             left: 0,
             width: "100vw",
             height: "100vh",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "#806247",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -110,47 +54,34 @@ export const WalletConnect = ({ onContinue }) => {
                     marginBottom: "40px",
                     lineHeight: "1.6",
                 }}>
-                    Connect your Solana wallet to unlock SOL rewards, NFT skins, and on-chain stats. Or continue without connecting.
+                    {/* Connect your Solana wallet to unlock SOL rewards, NFT skins, and on-chain stats. Or continue without connecting. */}
+
+                    Enter the arena and battle against other players. Aim, shoot, and dominate!
                 </p>
 
-                {/* Connect Wallet Button */}
+                {/* Connect Wallet Button - DISABLED */}
                 <button
-                    onClick={handleConnectWallet}
-                    disabled={connecting}
+                    disabled={true}
                     style={{
                         width: "100%",
-                        padding: "18px",
-                        fontSize: "18px",
+                        padding: "12px",
+                        fontSize: "15px",
                         fontWeight: "bold",
                         color: "white",
-                        background: connecting
-                            ? "linear-gradient(135deg, #999 0%, #666 100%)"
-                            : "linear-gradient(135deg, #14F195 0%, #9945FF 100%)",
+                        background: "#999",
                         border: "none",
-                        borderRadius: "12px",
-                        cursor: connecting ? "not-allowed" : "pointer",
+                        borderRadius: "8px",
+                        cursor: "not-allowed",
                         transition: "all 0.2s",
                         marginBottom: "15px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "10px",
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!connecting) {
-                            e.target.style.transform = "translateY(-2px)";
-                            e.target.style.boxShadow = "0 8px 25px rgba(153, 69, 255, 0.5)";
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!connecting) {
-                            e.target.style.transform = "translateY(0)";
-                            e.target.style.boxShadow = "none";
-                        }
+                        opacity: 0.6,
                     }}
                 >
-                    <span style={{ fontSize: "24px" }}>👛</span>
-                    {connecting ? "Connecting..." : "Connect Solana Wallet"}
+                    Connect Solana Wallet (Coming Soon)
                 </button>
 
                 {/* Wallet Support Info */}
@@ -160,6 +91,7 @@ export const WalletConnect = ({ onContinue }) => {
                     gap: "15px",
                     marginBottom: "20px",
                     flexWrap: "wrap",
+                    opacity: 0.5,
                 }}>
                     <div style={{
                         padding: "6px 12px",
@@ -196,30 +128,25 @@ export const WalletConnect = ({ onContinue }) => {
                 {/* Continue Without Button */}
                 <button
                     onClick={handleContinueWithout}
-                    disabled={connecting}
                     style={{
                         width: "100%",
-                        padding: "18px",
-                        fontSize: "16px",
+                        padding: "12px",
+                        fontSize: "14px",
                         fontWeight: "600",
                         color: "#666",
                         background: "transparent",
-                        border: "2px solid #ddd",
-                        borderRadius: "12px",
-                        cursor: connecting ? "not-allowed" : "pointer",
+                        border: "2px solid #806247",
+                        borderRadius: "8px",
+                        cursor: "pointer",
                         transition: "all 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                        if (!connecting) {
-                            e.target.style.borderColor = "#9945FF";
-                            e.target.style.color = "#9945FF";
-                        }
+                        e.target.style.borderColor = "#806247";
+                        e.target.style.color = "#806247";
                     }}
                     onMouseLeave={(e) => {
-                        if (!connecting) {
-                            e.target.style.borderColor = "#ddd";
-                            e.target.style.color = "#666";
-                        }
+                        e.target.style.borderColor = "#806247";
+                        e.target.style.color = "#666";
                     }}
                 >
                     Continue Without Wallet
@@ -232,6 +159,7 @@ export const WalletConnect = ({ onContinue }) => {
                     background: "#f8f9fa",
                     borderRadius: "12px",
                     textAlign: "left",
+                    opacity: 0.5,
                 }}>
                     <p style={{
                         fontSize: "12px",
@@ -241,7 +169,7 @@ export const WalletConnect = ({ onContinue }) => {
                         textTransform: "uppercase",
                         letterSpacing: "1px",
                     }}>
-                        With Solana Wallet Connected:
+                        With Solana Wallet Connected (Coming Soon):
                     </p>
                     <div style={{ fontSize: "14px", color: "#666", lineHeight: "1.8" }}>
                         ✓ Earn SOL rewards for wins<br />
@@ -249,27 +177,6 @@ export const WalletConnect = ({ onContinue }) => {
                         ✓ Track stats on Solana blockchain<br />
                         ✓ Trade items on Magic Eden
                     </div>
-                </div>
-
-                {/* Phantom Install Link */}
-                <div style={{
-                    marginTop: "15px",
-                    fontSize: "12px",
-                    color: "#999",
-                }}>
-                    Don't have a wallet?{" "}
-                    <a
-                        href="https://phantom.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            color: "#9945FF",
-                            textDecoration: "none",
-                            fontWeight: "600",
-                        }}
-                    >
-                        Install Phantom
-                    </a>
                 </div>
             </div>
         </div>
