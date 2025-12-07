@@ -3,8 +3,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { isHost } from "playroomkit";
 import { useEffect, useRef, useState } from "react";
-import { CharacterSoldier } from "./CharacterSoldier";
-import { MobileRespawnButton } from "./MobileRespawnButton";
+import { CharacterSoldier } from "./CharacterSoldier.jsx";
+import { MobileRespawnButton } from "./Mobilerespawnbutton.jsx";
 const MOVEMENT_SPEED = 202;
 const FIRE_RATE = 380;
 export const WEAPON_OFFSET = {

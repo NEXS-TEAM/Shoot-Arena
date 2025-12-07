@@ -7,10 +7,10 @@ import {
   useMultiplayerState,
 } from "playroomkit";
 import { useEffect, useState } from "react";
-import { Bullet } from "./Bullet";
-import { BulletHit } from "./BulletHit";
-import { CharacterController } from "./CharacterController";
-import { Map } from "./Map";
+import { Bullet } from "./Bullet.jsx";
+import { BulletHit } from "./BulletHit.jsx";
+import { CharacterController } from "./CharacterController.jsx";
+import { Map } from "./Map.jsx";
 
 export const Experience = ({ characterData, downgradedPerformance = false }) => {
   const [players, setPlayers] = useState([]);

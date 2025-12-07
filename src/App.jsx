@@ -4,10 +4,10 @@ import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useState, useEffect } from "react";
 import { insertCoin } from "playroomkit";
-import { Experience } from "./components/Experience";
-import { Leaderboard } from "./components/Leaderboard";
-import { WeaponSelector } from "./components/WeaponSelector";
-import { WalletConnect } from "./components/WalletConnect";
+import { Experience } from "./components/Experience.jsx";
+import { Leaderboard } from "./components/Leaderboard.jsx";
+import { WeaponSelector } from "./components/WeaponSelector.jsx";
+import { WalletConnect } from "./components/WalletConnect.jsx";
 
 function App() {
   const [downgradedPerformance, setDowngradedPerformance] = useState(false);
