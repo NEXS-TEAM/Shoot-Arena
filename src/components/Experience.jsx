@@ -6,14 +6,53 @@ import {
   onPlayerJoin,
   useMultiplayerState,
 } from "playroomkit";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Bullet } from "./Bullet.jsx";
 import { BulletHit } from "./BulletHit.jsx";
 import { CharacterController } from "./CharacterController.jsx";
 import { Map } from "./Map.jsx";
+import { saveHighscore } from "../lib/supabase.js";
 
 export const Experience = ({ characterData, downgradedPerformance = false }) => {
   const [players, setPlayers] = useState([]);
+  const lastSavedKills = useRef(0);
+  const saveTimeoutRef = useRef(null);
+
+  // Get wallet info from characterData
+  const walletConnected = characterData?.wallet?.connected;
+  const walletAddress = characterData?.wallet?.address;
+
+  // Debounced save to Supabase (saves after 2 seconds of no new kills)
+  const saveKillsToSupabase = useCallback((kills) => {
+    if (!walletConnected || !walletAddress) return;
+    
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Save after 2 seconds of no new kills
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (kills > lastSavedKills.current) {
+        const result = await saveHighscore(walletAddress, kills);
+        if (result.success) {
+          lastSavedKills.current = kills;
+          if (result.isNewHighscore) {
+            console.log(`New highscore saved: ${kills} kills`);
+          }
+        }
+      }
+    }, 2000);
+  }, [walletConnected, walletAddress]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // insertCoin is already called in App.jsx
@@ -86,7 +125,13 @@ export const Experience = ({ characterData, downgradedPerformance = false }) => 
   const onKilled = (_victim, killer) => {
     const killerState = players.find((p) => p.state.id === killer)?.state;
     if (killerState) {
-      killerState.setState("kills", killerState.state.kills + 1);
+      const newKills = killerState.state.kills + 1;
+      killerState.setState("kills", newKills);
+
+      // Save to Supabase if the killer is the current player with connected wallet
+      if (killer === myPlayer()?.id && walletConnected) {
+        saveKillsToSupabase(newKills);
+      }
     }
   };
 

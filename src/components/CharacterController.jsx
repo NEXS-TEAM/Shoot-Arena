@@ -4,7 +4,6 @@ import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { isHost } from "playroomkit";
 import { useEffect, useRef, useState } from "react";
 import { CharacterSoldier } from "./CharacterSoldier.jsx";
-import { MobileRespawnButton } from "./Mobilerespawnbutton.jsx";
 const MOVEMENT_SPEED = 202;
 const FIRE_RATE = 380;
 export const WEAPON_OFFSET = {
@@ -549,7 +548,6 @@ export const CharacterController = ({
         )}
         <CapsuleCollider args={[0.7, 0.6]} position={[0, 1.28, 0]} />
       </RigidBody>
-      {userPlayer && <MobileRespawnButton onRespawn={manualRespawn} />}
     </group>
   );
 };
