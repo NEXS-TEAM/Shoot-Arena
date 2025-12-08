@@ -45,29 +45,27 @@ export const CharacterController = ({
     space: false, // Shoot key (Space)
     enter: false, // Jump key (Enter)
     shoot: false, // Shoot (mouse click)
-    respawn: false, // Respawn key (R)
     arrowup: false,
     arrowdown: false,
     arrowleft: false,
     arrowright: false,
   });
 
-  // Track the last facing direction for shooting (based on movement)
-  const lastAngle = useRef(0);
-
-  // Mouse look controls
-  const mouseRotation = useRef({ x: 0, y: 0 });
-  const isPointerLocked = useRef(false);
+  // Camera/look direction (mouse controls this)
+  const lookAngle = useRef(0); // Horizontal look angle
+  const lookVerticalAngle = useRef(0.4); // Vertical look angle (pitch)
   
   // Touch controls for mobile camera
   const lastTouchPosition = useRef({ x: 0, y: 0 });
   const isTouchingCamera = useRef(false);
 
-  // Jump controls
+  // Jump controls - allow up to 5 jumps (multi-jump/flying)
   const isGrounded = useRef(true);
+  const jumpCount = useRef(0);
+  const maxJumps = 5; // Maximum number of jumps allowed before landing
   const jumpForce = 8; // Adjust for jump height (default: 8)
 
-  const scene = useThree((state) => state.scene);
+  const { scene } = useThree();
 
   const spawnRandomly = () => {
     if (!rigidbody.current) return; // Safety check
@@ -86,14 +84,14 @@ export const CharacterController = ({
     if (spawns.length === 0) {
       console.log("No spawn points found in map, using default positions");
       const defaultSpawns = [
-        { x: 10, y: 1, z: 10 },
-        { x: -10, y: 1, z: -10 },
-        { x: 10, y: 1, z: -10 },
-        { x: -10, y: 1, z: 10 },
-        { x: 0, y: 1, z: 15 },
-        { x: 0, y: 1, z: -15 },
-        { x: 15, y: 1, z: 0 },
-        { x: -15, y: 1, z: 0 },
+        { x: 8, y: 3, z: 8 },
+        { x: -8, y: 3, z: -8 },
+        { x: 8, y: 3, z: -8 },
+        { x: -8, y: 3, z: 8 },
+        { x: 0, y: 3, z: 12 },
+        { x: 0, y: 3, z: -12 },
+        { x: 12, y: 3, z: 0 },
+        { x: -12, y: 3, z: 0 },
       ];
       const randomSpawn = defaultSpawns[Math.floor(Math.random() * defaultSpawns.length)];
       rigidbody.current.setTranslation(randomSpawn);
@@ -102,26 +100,6 @@ export const CharacterController = ({
       const spawnPos = spawns[Math.floor(Math.random() * spawns.length)].position;
       rigidbody.current.setTranslation(spawnPos);
     }
-  };
-
-  // Manual respawn function for hotkey/button
-  const manualRespawn = () => {
-    if (!rigidbody.current || !isHost()) return;
-
-    // Respawn to get unstuck - works anytime
-    const currentHealth = state.state.health;
-    const isDead = state.state.dead || currentHealth <= 0;
-
-    // Move to new spawn point
-    spawnRandomly();
-    rigidbody.current.setEnabled(true);
-
-    // Only restore health if player was dead, otherwise keep current health
-    if (isDead) {
-      state.setState("health", 100);
-      state.setState("dead", false);
-    }
-    // If alive, keep current health (just reposition)
   };
 
   // Add keyboard event listeners
@@ -134,10 +112,10 @@ export const CharacterController = ({
       if (key === 'a') keysPressed.current.a = true;
       if (key === 's') keysPressed.current.s = true;
       if (key === 'd') keysPressed.current.d = true;
-      if (key === 'arrowup') keysPressed.current.arrowup = true;
-      if (key === 'arrowdown') keysPressed.current.arrowdown = true;
-      if (key === 'arrowleft') keysPressed.current.arrowleft = true;
-      if (key === 'arrowright') keysPressed.current.arrowright = true;
+      if (e.key === 'ArrowUp') keysPressed.current.arrowup = true;
+      if (e.key === 'ArrowDown') keysPressed.current.arrowdown = true;
+      if (e.key === 'ArrowLeft') keysPressed.current.arrowleft = true;
+      if (e.key === 'ArrowRight') keysPressed.current.arrowright = true;
       if (key === ' ') {
         e.preventDefault(); // Prevent page scroll
         keysPressed.current.space = true; // Space for shooting
@@ -146,9 +124,12 @@ export const CharacterController = ({
         e.preventDefault(); // Prevent default enter behavior
         keysPressed.current.enter = true; // Enter for jumping
       }
-      if (key === 'r') {
-        e.preventDefault();
-        keysPressed.current.respawn = true; // R for respawn
+      // Q/E to rotate camera
+      if (key === 'q') {
+        lookAngle.current += 0.08;
+      }
+      if (key === 'e') {
+        lookAngle.current -= 0.08;
       }
     };
 
@@ -158,22 +139,20 @@ export const CharacterController = ({
       if (key === 'a') keysPressed.current.a = false;
       if (key === 's') keysPressed.current.s = false;
       if (key === 'd') keysPressed.current.d = false;
-      if (key === 'arrowup') keysPressed.current.arrowup = false;
-      if (key === 'arrowdown') keysPressed.current.arrowdown = false;
-      if (key === 'arrowleft') keysPressed.current.arrowleft = false;
-      if (key === 'arrowright') keysPressed.current.arrowright = false;
+      if (e.key === 'ArrowUp') keysPressed.current.arrowup = false;
+      if (e.key === 'ArrowDown') keysPressed.current.arrowdown = false;
+      if (e.key === 'ArrowLeft') keysPressed.current.arrowleft = false;
+      if (e.key === 'ArrowRight') keysPressed.current.arrowright = false;
       if (key === ' ') keysPressed.current.space = false;
       if (key === 'enter') keysPressed.current.enter = false;
-      if (key === 'r') keysPressed.current.respawn = false;
     };
 
-    // Add mouse click for shooting and pointer lock
+    // Add mouse click for shooting
     const handleMouseDown = (e) => {
-      if (e.button === 0) { // Left mouse button
-        keysPressed.current.shoot = true; // Changed from space to shoot
-
-        // Request pointer lock on first click (for mouse look)
-        if (!isPointerLocked.current && document.pointerLockElement !== document.body) {
+      if (e.button === 0) { // Left mouse button - shoot
+        keysPressed.current.shoot = true;
+        // Request pointer lock for FPS-style mouse look
+        if (document.pointerLockElement !== document.body) {
           document.body.requestPointerLock();
         }
       }
@@ -181,30 +160,31 @@ export const CharacterController = ({
 
     const handleMouseUp = (e) => {
       if (e.button === 0) {
-        keysPressed.current.shoot = false; // Changed from space to shoot
+        keysPressed.current.shoot = false;
       }
     };
 
-    // Handle mouse movement for looking around
+    // Handle mouse movement for looking around (FPS-style)
     const handleMouseMove = (e) => {
+      // Only use mouse movement when pointer is locked (FPS style)
       if (document.pointerLockElement === document.body) {
-        isPointerLocked.current = true;
-
-        // Mouse sensitivity
         const sensitivity = 0.002;
-
-        // Update horizontal rotation (left/right)
-        mouseRotation.current.x -= e.movementX * sensitivity;
-
-        // Update vertical rotation (up/down) - limited to prevent flipping
-        mouseRotation.current.y -= e.movementY * sensitivity;
-        mouseRotation.current.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, mouseRotation.current.y));
+        // Horizontal mouse movement rotates camera/look direction
+        lookAngle.current -= e.movementX * sensitivity;
+        // Vertical mouse movement adjusts camera pitch
+        lookVerticalAngle.current -= e.movementY * sensitivity;
+        lookVerticalAngle.current = Math.max(0.1, Math.min(1.0, lookVerticalAngle.current));
       }
     };
 
-    // Handle pointer lock change
+    // Prevent context menu on right click
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
+    
+    // Handle ESC to exit pointer lock
     const handlePointerLockChange = () => {
-      isPointerLocked.current = document.pointerLockElement === document.body;
+      // Pointer lock state changed
     };
 
     // Touch controls for mobile camera
@@ -247,10 +227,10 @@ export const CharacterController = ({
       const deltaX = cameraTouch.clientX - lastTouchPosition.current.x;
       const deltaY = cameraTouch.clientY - lastTouchPosition.current.y;
 
-      // Update camera rotation
-      mouseRotation.current.x -= deltaX * sensitivity;
-      mouseRotation.current.y -= deltaY * sensitivity;
-      mouseRotation.current.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, mouseRotation.current.y));
+      // Update look angle (mobile)
+      lookAngle.current -= deltaX * sensitivity;
+      lookVerticalAngle.current -= deltaY * sensitivity;
+      lookVerticalAngle.current = Math.max(0.1, Math.min(1.0, lookVerticalAngle.current));
 
       lastTouchPosition.current = { x: cameraTouch.clientX, y: cameraTouch.clientY };
     };
@@ -275,6 +255,7 @@ export const CharacterController = ({
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('pointerlockchange', handlePointerLockChange);
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -286,6 +267,7 @@ export const CharacterController = ({
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('pointerlockchange', handlePointerLockChange);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
@@ -319,20 +301,21 @@ export const CharacterController = ({
     // Early return if components not ready
     if (!rigidbody.current || !character.current) return;
 
-    // CAMERA FOLLOW - With mouse look
-    if (controls.current) {
-      const cameraDistanceY = window.innerWidth < 1024 ? 4 : 5;
-      const cameraDistanceZ = window.innerWidth < 1024 ? 6 : 8;
-      const playerWorldPos = vec3(rigidbody.current.translation());
+    const playerWorldPos = vec3(rigidbody.current.translation());
 
-      // Use mouse rotation for camera position
-      const horizontalAngle = mouseRotation.current.x;
-      const verticalAngle = mouseRotation.current.y;
+    // CAMERA FOLLOW - Third person behind player (CoD style)
+    if (controls.current && userPlayer) {
+      const cameraDistance = window.innerWidth < 1024 ? 8 : 10;
+      const cameraHeight = window.innerWidth < 1024 ? 4 : 5;
 
-      // Calculate camera position based on mouse rotation
-      const cameraX = playerWorldPos.x - Math.sin(horizontalAngle) * cameraDistanceZ * Math.cos(verticalAngle);
-      const cameraY = playerWorldPos.y + cameraDistanceY + Math.sin(verticalAngle) * cameraDistanceZ;
-      const cameraZ = playerWorldPos.z - Math.cos(horizontalAngle) * cameraDistanceZ * Math.cos(verticalAngle);
+      // Camera is positioned behind the character based on look angle
+      const horizontalAngle = lookAngle.current;
+      const verticalAngle = lookVerticalAngle.current;
+
+      // Camera position: behind and above the player
+      const cameraX = playerWorldPos.x - Math.sin(horizontalAngle) * cameraDistance;
+      const cameraY = playerWorldPos.y + cameraHeight + verticalAngle * 3;
+      const cameraZ = playerWorldPos.z - Math.cos(horizontalAngle) * cameraDistance;
 
       controls.current.setLookAt(
         cameraX,
@@ -343,9 +326,11 @@ export const CharacterController = ({
         playerWorldPos.z,
         true
       );
+    }
 
-      // Update character facing direction to match camera horizontal rotation
-      lastAngle.current = horizontalAngle;
+    // CHARACTER FACING - Character faces where camera is looking (CoD style)
+    if (userPlayer) {
+      character.current.rotation.y = lookAngle.current;
     }
 
     if (state.state.dead) {
@@ -353,42 +338,61 @@ export const CharacterController = ({
       return;
     }
 
-    // Calculate keyboard movement - character-relative controls
+    // MOVEMENT - Standard FPS controls (CoD style)
+    // W/Up = forward, S/Down = backward, A/Left = strafe left, D/Right = strafe right
     let isKeyboardMoving = false;
-    let isKeyboardTurning = false;
+    let forwardBack = 0; // +1 = forward, -1 = backward
+    let leftRight = 0;   // +1 = right, -1 = left
 
     if (userPlayer) {
       const keys = keysPressed.current;
-      const turnSpeed = 3.0 * delta; // Rotation speed
       
-      // A/D or Arrow Left/Right = turn the character
-      if (keys.a || keys.arrowleft) {
-        character.current.rotation.y += turnSpeed;
-        mouseRotation.current.x += turnSpeed; // Camera follows
-        isKeyboardTurning = true;
-      }
-      if (keys.d || keys.arrowright) {
-        character.current.rotation.y -= turnSpeed;
-        mouseRotation.current.x -= turnSpeed; // Camera follows
-        isKeyboardTurning = true;
-      }
+      // Forward/Backward (relative to facing direction)
+      if (keys.w || keys.arrowup) forwardBack += 1;
+      if (keys.s || keys.arrowdown) forwardBack -= 1;
       
-      // W/S or Arrow Up/Down = move forward/backward in facing direction
-      if (keys.w || keys.arrowup || keys.s || keys.arrowdown) {
+      // Strafe Left/Right (relative to facing direction)
+      if (keys.a || keys.arrowleft) leftRight -= 1;
+      if (keys.d || keys.arrowright) leftRight += 1;
+      
+      if (forwardBack !== 0 || leftRight !== 0) {
         isKeyboardMoving = true;
+        
+        // Normalize diagonal movement so you don't move faster diagonally
+        const length = Math.sqrt(forwardBack * forwardBack + leftRight * leftRight);
+        forwardBack /= length;
+        leftRight /= length;
+        
+        // Calculate world-space movement based on look direction
+        // Forward is the direction the character is facing
+        const facingAngle = lookAngle.current;
+        
+        // Forward/backward movement
+        const forwardX = Math.sin(facingAngle) * forwardBack;
+        const forwardZ = Math.cos(facingAngle) * forwardBack;
+        
+        // Strafe movement (perpendicular to forward)
+        // Left = negative leftRight, Right = positive leftRight
+        const strafeX = -Math.cos(facingAngle) * leftRight;
+        const strafeZ = Math.sin(facingAngle) * leftRight;
+        
+        const impulse = {
+          x: (forwardX + strafeX) * MOVEMENT_SPEED * delta,
+          y: 0,
+          z: (forwardZ + strafeZ) * MOVEMENT_SPEED * delta,
+        };
+        rigidbody.current.applyImpulse(impulse, true);
       }
     }
 
-    // Update player position based on joystick or keyboard
+    // Update player position based on joystick (mobile)
     const joystickAngle = joystick.angle();
     const isJoystickMoving = joystick.isJoystickPressed() && joystickAngle;
 
-    // Handle joystick movement (uses joystick angle relative to camera direction)
+    // Handle joystick movement (uses joystick angle relative to look direction)
     if (isJoystickMoving && joystickAngle !== null) {
-      setAnimation("Run");
-      // Make joystick relative to camera direction - "up" on joystick moves where camera faces
-      const correctedAngle = joystickAngle + Math.PI + mouseRotation.current.x;
-      character.current.rotation.y = correctedAngle;
+      // Make joystick relative to look direction - "up" on joystick moves forward
+      const correctedAngle = joystickAngle + Math.PI + lookAngle.current;
       
       const impulse = {
         x: Math.sin(correctedAngle) * MOVEMENT_SPEED * delta,
@@ -396,41 +400,36 @@ export const CharacterController = ({
         z: Math.cos(correctedAngle) * MOVEMENT_SPEED * delta,
       };
       rigidbody.current.applyImpulse(impulse, true);
-    } 
-    // Handle keyboard movement (uses character facing direction)
-    else if (isKeyboardMoving) {
+    }
+
+    // Track if player is moving (for animation)
+    const isMoving = isJoystickMoving || isKeyboardMoving;
+    
+    // Set animation based on movement
+    if (isMoving) {
       setAnimation("Run");
-      const facingAngle = character.current.rotation.y;
-      const keys = keysPressed.current;
-      
-      // Direction multiplier: 1 for forward, -1 for backward
-      let direction = 0;
-      if (keys.w || keys.arrowup) direction += 1;
-      if (keys.s || keys.arrowdown) direction -= 1;
-      
-      const impulse = {
-        x: Math.sin(facingAngle) * MOVEMENT_SPEED * delta * direction,
-        y: 0,
-        z: Math.cos(facingAngle) * MOVEMENT_SPEED * delta * direction,
-      };
-      rigidbody.current.applyImpulse(impulse, true);
-    } else if (isKeyboardTurning) {
-      setAnimation("Idle");
     } else {
       setAnimation("Idle");
     }
 
-    // Track if player is moving (for shooting animation)
-    const isMoving = isJoystickMoving || isKeyboardMoving;
-
-    // JUMP LOGIC
+    // JUMP LOGIC - Multi-jump (up to 5 jumps)
     // Check if player is on ground (simple check using y-velocity)
     const velocity = rigidbody.current.linvel();
+    const wasGrounded = isGrounded.current;
     isGrounded.current = Math.abs(velocity.y) < 0.5; // Grounded if not moving much vertically
 
-    // Jump when Enter pressed and on ground
-    if (keysPressed.current.enter && isGrounded.current) {
+    // Reset jump count when landing
+    if (isGrounded.current && !wasGrounded) {
+      jumpCount.current = 0;
+    }
+
+    // Jump when Enter pressed and have jumps remaining
+    if (keysPressed.current.enter && jumpCount.current < maxJumps) {
+      // Reset vertical velocity before jumping for consistent jump height
+      const currentVel = rigidbody.current.linvel();
+      rigidbody.current.setLinvel({ x: currentVel.x, y: 0, z: currentVel.z }, true);
       rigidbody.current.applyImpulse({ x: 0, y: jumpForce, z: 0 }, true);
+      jumpCount.current += 1;
       keysPressed.current.enter = false; // Prevent continuous jumping while holding enter
     }
 
@@ -439,7 +438,7 @@ export const CharacterController = ({
     const isFiring = keysPressed.current.space || keysPressed.current.shoot || joystick.isPressed("fire");
 
     if (isFiring) {
-      // fire - use character's actual facing direction
+      // Fire in the direction the character is facing (which is towards cursor)
       const shootAngle = character.current.rotation.y;
       setAnimation(isMoving ? "Run_Shoot" : "Idle_Shoot");
       if (isHost()) {
@@ -454,13 +453,6 @@ export const CharacterController = ({
           onFire(newBullet);
         }
       }
-    }
-
-    // RESPAWN LOGIC
-    // Press R to respawn manually
-    if (keysPressed.current.respawn) {
-      manualRespawn();
-      keysPressed.current.respawn = false; // Prevent spam
     }
 
     if (isHost()) {
@@ -503,11 +495,20 @@ export const CharacterController = ({
               state.setState("dead", true);
               state.setState("health", 0);
               rigidbody.current.setEnabled(false);
+              // Stop all movement
+              rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+              rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
               setTimeout(() => {
+                if (!rigidbody.current) return; // Safety check
+                // Reset velocity before respawn
+                rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
                 spawnRandomly();
                 rigidbody.current.setEnabled(true);
                 state.setState("health", 100);
                 state.setState("dead", false);
+                // Force position sync to prevent ghost/clone
+                state.setState("pos", rigidbody.current.translation());
               }, 2000);
               onKilled(state.id, other.rigidBody.userData.player);
             } else {

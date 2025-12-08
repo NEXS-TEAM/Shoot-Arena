@@ -20,15 +20,15 @@ export const Map = () => {
         <primitive object={map.scene} />
       </RigidBody>
 
-      {/* Random spawn points */}
-      <group name="spawn_0" position={[10, 1, 10]} />
-      <group name="spawn_1" position={[-10, 1, -10]} />
-      <group name="spawn_2" position={[10, 1, -10]} />
-      <group name="spawn_3" position={[-10, 1, 10]} />
-      <group name="spawn_4" position={[0, 1, 15]} />
-      <group name="spawn_5" position={[0, 1, -15]} />
-      <group name="spawn_6" position={[15, 1, 0]} />
-      <group name="spawn_7" position={[-15, 1, 0]} />
+      {/* Random spawn points - elevated to avoid blocking */}
+      <group name="spawn_0" position={[8, 3, 8]} />
+      <group name="spawn_1" position={[-8, 3, -8]} />
+      <group name="spawn_2" position={[8, 3, -8]} />
+      <group name="spawn_3" position={[-8, 3, 8]} />
+      <group name="spawn_4" position={[0, 3, 12]} />
+      <group name="spawn_5" position={[0, 3, -12]} />
+      <group name="spawn_6" position={[12, 3, 0]} />
+      <group name="spawn_7" position={[-12, 3, 0]} />
     </group>
   );
 };
