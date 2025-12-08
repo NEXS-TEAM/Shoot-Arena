@@ -42,7 +42,11 @@ export const GamePage = () => {
     try {
       // insertCoin shows Playroom lobby with random GitHub avatars
       const avatars = [
-        'https://i.ibb.co/q3Zd7Ynk/alon.jpg',
+        '/images/TYPE_1.JPG',
+        '/images/TYPE_2.JPG',
+        '/images/TYPE_3.JPG',
+        '/images/TYPE_4.JPG',
+        '/images/TYPE_5.png',
       ];
 
       await insertCoin({

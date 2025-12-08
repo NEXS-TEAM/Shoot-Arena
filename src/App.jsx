@@ -30,17 +30,11 @@ function App() {
     try {
       // insertCoin shows Playroom lobby with random GitHub avatars
       const avatars = [
-        'https://i.ibb.co/q3Zd7Ynk/alon.jpg',
-        // 'https://avatars.githubusercontent.com/u/1?v=4',
-        // 'https://avatars.githubusercontent.com/u/2?v=4',
-        // 'https://avatars.githubusercontent.com/u/3?v=4',
-        // 'https://avatars.githubusercontent.com/u/4?v=4',
-        // 'https://avatars.githubusercontent.com/u/5?v=4',
-        // 'https://avatars.githubusercontent.com/u/6?v=4',
-        // 'https://avatars.githubusercontent.com/u/7?v=4',
-        // 'https://avatars.githubusercontent.com/u/8?v=4',
-        // 'https://avatars.githubusercontent.com/u/9?v=4',
-        // 'https://avatars.githubusercontent.com/u/10?v=4',
+        '/images/TYPE_1.JPG',
+        '/images/TYPE_2.JPG',
+        '/images/TYPE_3.JPG',
+        '/images/TYPE_4.JPG',
+        '/images/TYPE_5.png',
       ];
 
       await insertCoin({
