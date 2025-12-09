@@ -206,7 +206,15 @@ export const GamePage = () => {
         shadows
         camera={{ position: [0, 30, 0], fov: 30, near: 2 }}
         dpr={[1, 1.5]}
-        style={{ cursor: 'none' }} // Hide default cursor
+        className="game-canvas"
+        style={{ 
+          cursor: 'none',
+          width: '100vw',
+          height: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+        }}
       >
         <color attach="background" args={["#242424"]} />
         <SoftShadows size={42} />
