@@ -13,6 +13,18 @@ export const GamePage = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedWeapon, setSelectedWeapon] = useState("AK");
   const [walletData, setWalletData] = useState(null);
+  const [isFirstPerson, setIsFirstPerson] = useState(false);
+
+  // Listen for V key to toggle crosshair visibility
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key.toLowerCase() === 'v') {
+        setIsFirstPerson(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Load wallet data from localStorage on mount
   useEffect(() => {
@@ -82,6 +94,29 @@ export const GamePage = () => {
     <>
       <Loader />
       <Leaderboard />
+      {/* Crosshair - only shown in first-person view */}
+      {isFirstPerson && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 100,
+          }}
+        >
+          <svg width="32" height="32" viewBox="0 0 32 32">
+            {/* Center dot */}
+            <circle cx="16" cy="16" r="2" fill="#ff3333" />
+            {/* Cross lines */}
+            <line x1="16" y1="4" x2="16" y2="11" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+            <line x1="16" y1="21" x2="16" y2="28" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+            <line x1="4" y1="16" x2="11" y2="16" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+            <line x1="21" y1="16" x2="28" y2="16" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+      )}
       {/* Controls hint */}
       <div
         style={{
@@ -100,7 +135,7 @@ export const GamePage = () => {
           borderRadius: '4px',
         }}
       >
-        Click to start | WASD/Arrows: Move | Mouse: Look | Q/E: Rotate Camera | Click/Space: Shoot | ESC: Release
+        Click to start | WASD/Arrows: Move | Mouse: Look | Q/E: Rotate | V: First Person | Click/Space: Shoot | ESC: Release
       </div>
       <Canvas
         shadows

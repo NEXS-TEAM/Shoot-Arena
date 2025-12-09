@@ -42,6 +42,8 @@ export const CharacterController = ({
     a: false,
     s: false,
     d: false,
+    q: false, // Rotate camera left
+    e: false, // Rotate camera right
     space: false, // Shoot key (Space)
     shoot: false, // Shoot (mouse click)
     arrowup: false,
@@ -52,6 +54,7 @@ export const CharacterController = ({
 
   // Camera/look direction (mouse controls this)
   const lookAngle = useRef(0); // Horizontal look angle only (Y axis locked)
+  const [cameraFront, setCameraFront] = useState(false); // V key toggles front/back camera view
   
   // Touch controls for mobile camera
   const lastTouchPosition = useRef({ x: 0, y: 0 });
@@ -113,12 +116,16 @@ export const CharacterController = ({
         e.preventDefault(); // Prevent page scroll
         keysPressed.current.space = true; // Space for shooting
       }
-      // Q/E to rotate camera (fast rotation)
-      if (key === 'q') {
-        lookAngle.current += 0.3;
-      }
-      if (key === 'e') {
-        lookAngle.current -= 0.3;
+      // Q/E to rotate camera (smooth hold)
+      if (key === 'q') keysPressed.current.q = true;
+      if (key === 'e') keysPressed.current.e = true;
+      // V to toggle first-person/third-person camera view
+      if (key === 'v') {
+        setCameraFront(prev => {
+          const newValue = !prev;
+          window.isFirstPersonView = newValue; // For GamePage crosshair visibility
+          return newValue;
+        });
       }
     };
 
@@ -133,6 +140,8 @@ export const CharacterController = ({
       if (e.key === 'ArrowLeft') keysPressed.current.arrowleft = false;
       if (e.key === 'ArrowRight') keysPressed.current.arrowright = false;
       if (key === ' ') keysPressed.current.space = false;
+      if (key === 'q') keysPressed.current.q = false;
+      if (key === 'e') keysPressed.current.e = false;
     };
 
     // Add mouse click for shooting
@@ -260,14 +269,14 @@ export const CharacterController = ({
 
   // Track if initial spawn has happened to prevent double spawn
   const hasSpawned = useRef(false);
-  
+
   useEffect(() => {
     if (isHost() && !hasSpawned.current) {
       hasSpawned.current = true;
       // Small delay to ensure rigidbody is ready
       setTimeout(() => {
         if (rigidbody.current) {
-          spawnRandomly();
+      spawnRandomly();
         }
       }, 100);
     }
@@ -295,28 +304,73 @@ export const CharacterController = ({
 
     const playerWorldPos = vec3(rigidbody.current.translation());
 
-    // CAMERA FOLLOW - Third person behind player (fixed Y axis, parallel to head)
+    // Q/E smooth camera rotation (hold to rotate)
+    if (userPlayer) {
+      const rotateSpeed = 0.8 * delta; // Slower, more precise rotation
+      if (keysPressed.current.q) {
+        lookAngle.current += rotateSpeed;
+      }
+      if (keysPressed.current.e) {
+        lookAngle.current -= rotateSpeed;
+      }
+    }
+
+    // CAMERA FOLLOW - V toggles first-person (COD style ADS) / third-person view
     if (controls.current && userPlayer) {
-      const cameraDistance = window.innerWidth < 1024 ? 8 : 10;
-      const cameraHeight = window.innerWidth < 1024 ? 2 : 2.5; // Level with character's head
-
-      // Camera is positioned behind the character based on horizontal look angle only
       const horizontalAngle = lookAngle.current;
-
-      // Camera position: behind and slightly above the player (parallel view)
-      const cameraX = playerWorldPos.x - Math.sin(horizontalAngle) * cameraDistance;
-      const cameraY = playerWorldPos.y + cameraHeight; // Fixed height, no vertical tilt
-      const cameraZ = playerWorldPos.z - Math.cos(horizontalAngle) * cameraDistance;
+      
+      if (cameraFront) {
+        // First-person view (V pressed) - camera at character's head, looking forward
+        const headHeight = 1.7; // Eye level
+        const lookDistance = 10; // How far ahead to look
+        
+        // Camera at character's head position
+        const cameraX = playerWorldPos.x;
+        const cameraY = playerWorldPos.y + headHeight;
+        const cameraZ = playerWorldPos.z;
+        
+        // Look target: in front of the character based on facing direction
+        const lookAtX = playerWorldPos.x + Math.sin(horizontalAngle) * lookDistance;
+        const lookAtY = playerWorldPos.y + headHeight;
+        const lookAtZ = playerWorldPos.z + Math.cos(horizontalAngle) * lookDistance;
 
       controls.current.setLookAt(
         cameraX,
         cameraY,
         cameraZ,
-        playerWorldPos.x,
+          lookAtX,
+          lookAtY,
+          lookAtZ,
+          true
+        );
+      } else {
+        // Third-person view (default) - camera behind player, offset to right for aim line visibility
+        const cameraDistance = window.innerWidth < 1024 ? 8 : 10;
+        const cameraHeight = window.innerWidth < 1024 ? 2 : 2.5;
+        const sideOffset = 1.5; // Offset camera to the right to see aim line
+
+        // Calculate right direction perpendicular to look angle
+        const rightX = Math.cos(horizontalAngle) * sideOffset;
+        const rightZ = -Math.sin(horizontalAngle) * sideOffset;
+
+        const cameraX = playerWorldPos.x - Math.sin(horizontalAngle) * cameraDistance + rightX;
+        const cameraY = playerWorldPos.y + cameraHeight;
+        const cameraZ = playerWorldPos.z - Math.cos(horizontalAngle) * cameraDistance + rightZ;
+
+        // Look slightly ahead of player to show aim line
+        const lookAheadX = playerWorldPos.x + Math.sin(horizontalAngle) * 2;
+        const lookAheadZ = playerWorldPos.z + Math.cos(horizontalAngle) * 2;
+
+        controls.current.setLookAt(
+          cameraX,
+          cameraY,
+          cameraZ,
+          lookAheadX,
         playerWorldPos.y + 1.5,
-        playerWorldPos.z,
+          lookAheadZ,
         true
       );
+      }
     }
 
     // CHARACTER FACING - Only for keyboard/mouse (desktop)
@@ -509,6 +563,10 @@ export const CharacterController = ({
             animation={animation}
             weapon={weapon}
           />
+          {/* Aim line for third-person view */}
+          {userPlayer && !cameraFront && (
+            <AimLine />
+          )}
         </group>
         {userPlayer && (
           <directionalLight
@@ -552,5 +610,33 @@ const PlayerInfo = ({ state }) => {
         <meshBasicMaterial color="red" />
       </mesh>
     </Billboard>
+  );
+};
+
+// Aim line for third-person view (broken/dashed lines)
+const AimLine = () => {
+  // Create broken line segments
+  const segments = [];
+  const segmentLength = 1.2;
+  const gapLength = 0.6;
+  const totalLength = 18;
+  
+  let currentPos = 1;
+  let index = 0;
+  while (currentPos < totalLength) {
+    segments.push(
+      <mesh key={index} position={[0, 0, currentPos + segmentLength / 2]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, segmentLength, 6]} />
+        <meshBasicMaterial color="#ff3333" transparent opacity={0.8} />
+      </mesh>
+    );
+    currentPos += segmentLength + gapLength;
+    index++;
+  }
+  
+  return (
+    <group position={[0, 1.4, 0.5]}>
+      {segments}
+    </group>
   );
 };
