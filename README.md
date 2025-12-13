@@ -1,3 +1,5 @@
+<img src="src/assets/logo.svg" alt="ShootPlay Fun Logo" width="120" height="120" align="left" style="margin-right: 10px;">
+
 # ShootPlay Fun
 
 A fast-paced, browser-based multiplayer shooter game built with React Three Fiber and Playroom SDK. Features Solana wallet integration, customizable weapons, real-time multiplayer combat, and stunning 3D graphics.
