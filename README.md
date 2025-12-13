@@ -1,4 +1,4 @@
-<img src="src/assets/logo.svg" alt="ShootPlay Fun Logo" width="40" height="40" align="left" style="margin-right: 10px;">
+<img src="src/assets/logo.svg" alt="ShootPlay Fun Logo" width="80" height="80" align="left" style="margin-right: 10px;">
 
 # ShootPlay Fun
 
