@@ -244,40 +244,6 @@ We welcome contributions! Here's how you can help:
    ```
 5. **Open a Pull Request**
 
-### Development Guidelines
-
-- Follow existing code style
-- Add comments for complex logic
-- Test multiplayer functionality
-- Update README for new features
-- Keep bundle size optimized
-
-## 📝 Roadmap
-
-- [ ] More weapons and skins
-- [ ] Power-ups and items
-- [ ] Multiple maps
-- [ ] Game modes (Deathmatch, Team Battle, Capture the Flag)
-- [ ] Weapon customization
-- [ ] On-chain rewards and NFTs
-- [ ] Mobile touch controls
-- [ ] Voice chat integration
-- [ ] Spectator mode
-- [ ] Replay system
-
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Credits
-
-### Technologies
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) - React renderer for Three.js
-- [Solana](https://solana.com) - Blockchain integration
-- [Phantom Wallet](https://phantom.app) - Solana wallet
-
-### Assets
-- Character models: Exported from Character_Soldier.gltf
-- Weapon models: Included in character model
-
-
